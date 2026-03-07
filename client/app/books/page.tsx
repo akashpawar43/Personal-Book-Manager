@@ -1,6 +1,6 @@
-"use client";
+'use client';
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect } from "react";
 import BookCard from "@/components/BookCard";
 import { useDispatch, useSelector } from "react-redux";
 import { getBooks } from "@/redux/books/book.actions";
@@ -10,7 +10,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import FilterBar from "@/components/FilterBar";
 import { BookOpen, Plus } from "lucide-react";
 
-export default function BooksPage() {
+function BooksPageContent() {
   const dispatch = useDispatch();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -22,7 +22,7 @@ export default function BooksPage() {
 
   useEffect(() => {
     dispatch(getBooks({ status, tag, page, limit: 5 }));
-  }, [page, status, tag]);
+  }, [page, status, tag, dispatch]);
 
   const updateQuery = (params: any) => {
     const query = new URLSearchParams(searchParams.toString());
@@ -38,24 +38,14 @@ export default function BooksPage() {
     router.push(`/books?${query.toString()}`);
   };
 
-  const handlePage = (p: number) => {
-    updateQuery({ page: p });
-  };
+  const handlePage = (p: number) => updateQuery({ page: p });
 
-  const handleFilter = (filters: any) => {
-    updateQuery({
-      ...filters,
-      page: 1,
-    });
-  };
+  const handleFilter = (filters: any) => updateQuery({ ...filters, page: 1 });
 
-  const clearFilters = () => {
-    router.push("/books");
-  };
+  const clearFilters = () => router.push("/books");
 
   return (
     <div className="max-w-3xl mx-auto py-10 px-4">
-
       <div className="flex items-center justify-between mb-8">
         <div className="flex items-center gap-2 font-semibold text-lg">
           <BookOpen size={18} />
@@ -77,20 +67,29 @@ export default function BooksPage() {
         onClear={clearFilters}
       />
 
-      <div className="grid gap-4">
-        {books?.map((book: any) => (
-          <BookCard
-            key={book._id}
-            book={book}
-          />
-        ))}
+      <div className="grid gap-4 mt-4">
+        {books?.length ? (
+          books.map((book: any) => <BookCard key={book._id} book={book} />)
+        ) : (
+          <div className="text-center py-10 text-gray-500">No books found</div>
+        )}
       </div>
 
-      <Pagination
-        page={page}
-        totalPages={pagination?.totalPages || 0}
-        onPage={handlePage}
-      />
-    </div >
+      {pagination?.totalPages > 1 && (
+        <Pagination
+          page={page}
+          totalPages={pagination.totalPages}
+          onPage={handlePage}
+        />
+      )}
+    </div>
+  );
+}
+
+export default function BooksPage() {
+  return (
+    <Suspense fallback={<div className="text-center py-10">Loading books...</div>}>
+      <BooksPageContent />
+    </Suspense>
   );
 }
