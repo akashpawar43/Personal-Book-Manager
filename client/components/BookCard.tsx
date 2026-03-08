@@ -1,12 +1,14 @@
 "use client";
 
-import { deleteBook, updateBook } from "@/redux/books/book.actions";
+import { deleteBook, UPDATE_BOOK_CLEAR, updateBook } from "@/redux/books/book.actions";
 import { BookOpen, CircleCheck, Pencil, Trash } from "lucide-react";
 import Link from "next/link";
-import { useDispatch } from "react-redux";
+import { useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
 
 export default function BookCard({ book }: any) {
   const dispatch = useDispatch();
+  const { updateSuccess } = useSelector((state: any) => state.books);
 
   const handleStatusChange = (status: string) => {
     dispatch(
@@ -20,6 +22,12 @@ export default function BookCard({ book }: any) {
   const handleDelete = () => {
     dispatch(deleteBook(book._id));
   };
+
+  useEffect(() => {
+    if (updateSuccess) {
+      dispatch({ type: UPDATE_BOOK_CLEAR });
+    }
+  }, [updateSuccess]);
 
   return (
     <div className="border rounded-lg p-4 flex justify-between items-start bg-white">

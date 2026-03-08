@@ -1,11 +1,11 @@
 "use client";
 
-import { useState } from "react";
-import { useDispatch } from "react-redux";
+import { useEffect, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import { useRouter } from "next/navigation";
 import { flattenError } from "zod";
 import { bookSchema } from "@/validations/book.schema";
-import { updateBook } from "@/redux/books/book.actions";
+import { UPDATE_BOOK_CLEAR, updateBook } from "@/redux/books/book.actions";
 import { BookOpen, User, Tag } from "lucide-react";
 
 export default function EditBookForm({ book }: any) {
@@ -17,6 +17,7 @@ export default function EditBookForm({ book }: any) {
     const [tags, setTags] = useState(book.tags.join(", "));
     const [status, setStatus] = useState(book.status);
     const [errors, setErrors] = useState<any>({});
+    const { updateSuccess } = useSelector((state: any) => state.books);
 
     const submit = () => {
         const tagArray = tags
@@ -43,9 +44,14 @@ export default function EditBookForm({ book }: any) {
                 data: result.data
             })
         );
-
-        router.push("/books");
     };
+
+    useEffect(() => {
+        if (updateSuccess) {
+            dispatch({ type: UPDATE_BOOK_CLEAR });
+            router.push("/books");
+        }
+    }, [updateSuccess, router]);
 
     return (
         <div className="max-w-md mx-auto border rounded-lg p-6 mt-10 bg-white">
